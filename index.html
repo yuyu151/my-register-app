@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>註冊＋QR Code</title>
+</head>
+<body>
+  <h2>註冊</h2>
+  <input type="email" id="email" placeholder="Email"><br>
+  <input type="password" id="password" placeholder="密碼"><br>
+  <button onclick="register()">註冊</button>
+
+  <h3>QR Code 結果：</h3>
+  <canvas id="qrcode"></canvas>
+
+  <!-- qrcode.js -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+
+  <!-- Firebase SDKs -->
+  <script type="module">
+    // 初始化 Firebase
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "你的 API KEY",
+      authDomain: "你的 authDomain",
+      projectId: "你的 projectId",
+      storageBucket: "你的 storageBucket",
+      messagingSenderId: "你的 senderId",
+      appId: "你的 appId"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    window.register = async function () {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const uid = userCredential.user.uid;
+
+        // 存入資料庫
+        await setDoc(doc(db, "users", uid), {
+          email: email,
+          createdAt: new Date()
+        });
+
+        // 產生 QR Code
+        QRCode.toCanvas(document.getElementById('qrcode'), `UserID: ${uid}`, function (error) {
+          if (error) console.error(error);
+          console.log("QR Code OK");
+        });
+
+        alert("註冊成功！");
+      } catch (err) {
+        alert("錯誤：" + err.message);
+      }
+    }
+  </script>
+</body>
+</html>
