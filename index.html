@@ -8,28 +8,39 @@
   <h1>歡迎加入會員</h1>
   <p>請填寫以下資訊完成註冊</p>
   <img src="myimage.jpg" alt="圖片說明" width="300">
-
-  <title>註冊＋QR Code</title>
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>註冊與登入 - QR Code 無人商店</title>
 </head>
 <body>
   <h2>註冊</h2>
-  <input type="email" id="email" placeholder="Email"><br>
-  <input type="password" id="password" placeholder="密碼"><br>
+  <input type="email" id="registerEmail" placeholder="Email"><br>
+  <input type="password" id="registerPassword" placeholder="密碼"><br>
   <button onclick="register()">註冊</button>
 
-  <h3>QR Code 結果：</h3>
+  <hr>
+
+  <h2>登入</h2>
+  <input type="email" id="loginEmail" placeholder="Email"><br>
+  <input type="password" id="loginPassword" placeholder="密碼"><br>
+  <button onclick="login()">登入</button>
+
+  <h3>QR Code（登入後顯示）：</h3>
   <canvas id="qrcode"></canvas>
 
-  <!-- qrcode.js -->
+  <!-- QR Code Library -->
   <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 
-  <!-- Firebase SDKs -->
+  <!-- Firebase SDK 模組 -->
   <script type="module">
-    // 初始化 Firebase
+    // 載入 Firebase 所需模組
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import { getFirestore, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+    // 請在這裡填入你自己的 Firebase 設定
     const firebaseConfig = {
       apiKey: "你的 API KEY",
       authDomain: "你的 authDomain",
@@ -43,31 +54,46 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
+    // 註冊功能
     window.register = async function () {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
+      const email = document.getElementById("registerEmail").value;
+      const password = document.getElementById("registerPassword").value;
 
       try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const uid = userCredential.user.uid;
 
-        // 存入資料庫
         await setDoc(doc(db, "users", uid), {
           email: email,
           createdAt: new Date()
         });
 
-        // 產生 QR Code
+        alert("註冊成功，請使用帳號密碼登入！");
+      } catch (err) {
+        alert("註冊錯誤：" + err.message);
+      }
+    }
+
+    // 登入功能
+    window.login = async function () {
+      const email = document.getElementById("loginEmail").value;
+      const password = document.getElementById("loginPassword").value;
+
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const uid = userCredential.user.uid;
+
         QRCode.toCanvas(document.getElementById('qrcode'), `UserID: ${uid}`, function (error) {
           if (error) console.error(error);
           console.log("QR Code OK");
         });
 
-        alert("註冊成功！");
+        alert("登入成功，已產生 QR Code！");
       } catch (err) {
-        alert("錯誤：" + err.message);
+        alert("登入錯誤：" + err.message);
       }
     }
   </script>
 </body>
 </html>
+
