@@ -2,19 +2,13 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8">
-  <title>歡迎加入會員</title>
+  <title>註冊與登入 - QR Code 無人商店</title>
 </head>
 <body>
   <h1>歡迎加入會員</h1>
   <p>請填寫以下資訊完成註冊</p>
   <img src="myimage.jpg" alt="圖片說明" width="300">
-<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-  <meta charset="UTF-8">
-  <title>註冊與登入 - QR Code 無人商店</title>
-</head>
-<body>
+
   <h2>註冊</h2>
   <input type="email" id="registerEmail" placeholder="Email"><br>
   <input type="password" id="registerPassword" placeholder="密碼"><br>
@@ -35,12 +29,10 @@
 
   <!-- Firebase SDK 模組 -->
   <script type="module">
-    // 載入 Firebase 所需模組
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import { getFirestore, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    // 請在這裡填入你自己的 Firebase 設定
     const firebaseConfig = {
       apiKey: "你的 API KEY",
       authDomain: "你的 authDomain",
@@ -54,7 +46,6 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // 註冊功能
     window.register = async function () {
       const email = document.getElementById("registerEmail").value;
       const password = document.getElementById("registerPassword").value;
@@ -74,7 +65,6 @@
       }
     }
 
-    // 登入功能
     window.login = async function () {
       const email = document.getElementById("loginEmail").value;
       const password = document.getElementById("loginPassword").value;
@@ -96,4 +86,3 @@
   </script>
 </body>
 </html>
-
