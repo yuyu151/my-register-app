@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>會員註冊</title>
+</head>
+<body>
+  <h2>註冊會員</h2>
+  <input type="text" id="memberID" placeholder="請輸入會員ID" /><br><br>
+  <button onclick="register()">註冊</button>
+
+  <h3>QR Code：</h3>
+  <canvas id="qrcode"></canvas>
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <!-- QRCode.js -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+
+  <script>
+    // ⛔ 改成你自己的 Supabase 設定
+    const supabase = supabase.createClient(
+      'https://你的-supabase-url.supabase.co',
+      '你的-public-anon-key'
+    );
+
+    async function register() {
+      const memberID = document.getElementById("memberID").value.trim();
+      if (!memberID) {
+        alert("請輸入會員ID");
+        return;
+      }
+
+      const { error } = await supabase
+        .from('tblMember')
+        .insert([{ MemberID: memberID }]);
+
+      if (error) {
+        alert("註冊失敗：" + error.message);
+      } else {
+        alert("註冊成功！");
+        QRCode.toCanvas(document.getElementById('qrcode'), memberID, function (err) {
+          if (err) console.error(err);
+        });
+      }
+    }
+  </script>
+</body>
+</html>
