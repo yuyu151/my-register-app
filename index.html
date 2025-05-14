@@ -1,106 +1,90 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
-  <title>註冊與登入 - QR Code 無人商店</title>
+  <meta charset="UTF-8" />
+  <title>QR Code 無人商店註冊 / 登入</title>
+  <style>
+    body { font-family: sans-serif; max-width: 400px; margin: 2rem auto; }
+    input { margin: .4rem 0; width: 100%; padding: .5rem; }
+    button { padding: .6rem 1.2rem; margin: .6rem 0; cursor: pointer; }
+    canvas { margin-top: 1rem; }
+  </style>
 </head>
 <body>
-  <h1>歡迎加入會員</h1>
-  <p>請填寫以下資訊完成註冊</p>
-  <img src="myimage.jpg" alt="圖片說明" width="300">
-
   <h2>註冊</h2>
-  <input type="email" id="registerEmail" placeholder="Email"><br>
-  <input type="password" id="registerPassword" placeholder="密碼（至少6字）"><br>
-  <button onclick="register()">註冊</button>
+  <input type="email" id="registerEmail" placeholder="Email" />
+  <input type="password" id="registerPassword" placeholder="密碼（≥6 位）" />
+  <button id="btnRegister">註冊</button>
 
-  <hr>
+  <hr />
 
   <h2>登入</h2>
-  <input type="email" id="loginEmail" placeholder="Email"><br>
-  <input type="password" id="loginPassword" placeholder="密碼"><br>
-  <button onclick="login()">登入</button>
+  <input type="email" id="loginEmail" placeholder="Email" />
+  <input type="password" id="loginPassword" placeholder="密碼" />
+  <button id="btnLogin">登入</button>
 
-  <h3>QR Code（登入後顯示）：</h3>
+  <h3>QR Code（登入後）</h3>
   <canvas id="qrcode"></canvas>
 
   <!-- QR Code Library -->
   <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 
-  <!-- Firebase SDK 模組 -->
+  <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import { getFirestore, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } 
+      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, serverTimestamp } 
+      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    // ✅ 請填入你的 Firebase 專案設定
+    // TODO: 換成你的設定
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY", // 例：AIzaSyD5...G8
+      apiKey: "YOUR_API_KEY",
       authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
       projectId: "YOUR_PROJECT_ID",
       storageBucket: "YOUR_PROJECT_ID.appspot.com",
-      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-      appId: "YOUR_APP_ID"
+      messagingSenderId: "SENDER_ID",
+      appId: "APP_ID"
     };
 
-    // 初始化 Firebase
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+    const app   = initializeApp(firebaseConfig);
+    const auth  = getAuth(app);
+    const db    = getFirestore(app);
 
-    // 註冊功能
-    window.register = async function () {
-      const email = document.getElementById("registerEmail").value;
-      const password = document.getElementById("registerPassword").value;
-
-      if (!email || !password) {
-        alert("請填寫 email 和密碼");
-        return;
-      }
+    // 註冊
+    document.getElementById('btnRegister').onclick = async () => {
+      const email = registerEmail.value.trim();
+      const pw    = registerPassword.value.trim();
 
       try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const uid = userCredential.user.uid;
-
-        await setDoc(doc(db, "users", uid), {
-          email: email,
-          createdAt: new Date()
+        const { user } = await createUserWithEmailAndPassword(auth, email, pw);
+        await setDoc(doc(db, "users", user.uid), {
+          email,
+          createdAt: serverTimestamp()
         });
-
-        alert("✅ 註冊成功，請使用帳號密碼登入！");
-      } catch (err) {
-        alert("❌ 註冊錯誤：" + err.message);
+        alert("✅ 註冊成功！請再登入一次");
+      } catch (e) {
+        console.error(e);
+        // e.code 範例：auth/email-already-in-use、auth/weak-password...
+        alert("❌ 註冊失敗：" + e.code);
       }
-    }
+    };
 
-    // 登入功能
-    window.login = async function () {
-      const email = document.getElementById("loginEmail").value;
-      const password = document.getElementById("loginPassword").value;
-
-      if (!email || !password) {
-        alert("請輸入 email 和密碼！");
-        return;
-      }
-
+    // 登入
+    document.getElementById('btnLogin').onclick = async () => {
+      const email = loginEmail.value.trim();
+      const pw    = loginPassword.value.trim();
       try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        const uid = userCredential.user.uid;
-
-        QRCode.toCanvas(document.getElementById('qrcode'), `UserID: ${uid}`, function (error) {
-          if (error) {
-            console.error(error);
-            alert("⚠️ 產生 QR Code 時出錯");
-          } else {
-            console.log("QR Code OK");
-            alert("✅ 登入成功，已產生 QR Code！");
-          }
-        });
-      } catch (err) {
-        alert("❌ 登入錯誤：" + err.message);
+        const { user } = await signInWithEmailAndPassword(auth, email, pw);
+        // 產生 QR Code，內容可依你的 SSO 方案改寫
+        const token = user.uid;               // 先用 uid 示範
+        QRCode.toCanvas(qrcode, token);
+        alert("✅ 登入成功，已產生 QR Code！");
+      } catch (e) {
+        console.error(e);
+        alert("❌ 登入失敗：" + e.code);
       }
-    }
+    };
   </script>
 </body>
 </html>
-
