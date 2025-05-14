@@ -11,7 +11,7 @@
 
   <h2>註冊</h2>
   <input type="email" id="registerEmail" placeholder="Email"><br>
-  <input type="password" id="registerPassword" placeholder="密碼"><br>
+  <input type="password" id="registerPassword" placeholder="密碼（至少6字）"><br>
   <button onclick="register()">註冊</button>
 
   <hr>
@@ -33,22 +33,30 @@
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import { getFirestore, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+    // ✅ 請填入你的 Firebase 專案設定
     const firebaseConfig = {
-      apiKey: "你的 API KEY",
-      authDomain: "你的 authDomain",
-      projectId: "你的 projectId",
-      storageBucket: "你的 storageBucket",
-      messagingSenderId: "你的 senderId",
-      appId: "你的 appId"
+      apiKey: "YOUR_API_KEY", // 例：AIzaSyD5...G8
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID"
     };
 
+    // 初始化 Firebase
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
 
+    // 註冊功能
     window.register = async function () {
       const email = document.getElementById("registerEmail").value;
       const password = document.getElementById("registerPassword").value;
+
+      if (!email || !password) {
+        alert("請填寫 email 和密碼");
+        return;
+      }
 
       try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -59,30 +67,40 @@
           createdAt: new Date()
         });
 
-        alert("註冊成功，請使用帳號密碼登入！");
+        alert("✅ 註冊成功，請使用帳號密碼登入！");
       } catch (err) {
-        alert("註冊錯誤：" + err.message);
+        alert("❌ 註冊錯誤：" + err.message);
       }
     }
 
+    // 登入功能
     window.login = async function () {
       const email = document.getElementById("loginEmail").value;
       const password = document.getElementById("loginPassword").value;
+
+      if (!email || !password) {
+        alert("請輸入 email 和密碼！");
+        return;
+      }
 
       try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const uid = userCredential.user.uid;
 
         QRCode.toCanvas(document.getElementById('qrcode'), `UserID: ${uid}`, function (error) {
-          if (error) console.error(error);
-          console.log("QR Code OK");
+          if (error) {
+            console.error(error);
+            alert("⚠️ 產生 QR Code 時出錯");
+          } else {
+            console.log("QR Code OK");
+            alert("✅ 登入成功，已產生 QR Code！");
+          }
         });
-
-        alert("登入成功，已產生 QR Code！");
       } catch (err) {
-        alert("登入錯誤：" + err.message);
+        alert("❌ 登入錯誤：" + err.message);
       }
     }
   </script>
 </body>
 </html>
+
