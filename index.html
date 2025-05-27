@@ -1,69 +1,88 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8" />
-  <title>Supabase QR 登入示範</title>
-  <style>
-    body{font-family:sans-serif;max-width:420px;margin:2rem auto}
-    input{display:block;width:100%;padding:.5rem;margin:.4rem 0}
-    button{padding:.6rem 1.2rem;margin:.6rem 0;cursor:pointer}
-    canvas{margin-top:1rem}
-  </style>
+  <meta charset="UTF-8">
+  <title>註冊與登入 - QR Code 無人商店</title>
 </head>
 <body>
   <h2>註冊</h2>
-  <input type="email"    id="regEmail"    placeholder="Email">
-  <input type="password" id="regPass"     placeholder="密碼 (≥6)">
-  <button id="btnReg">註冊</button>
+  <input type="email" id="registerEmail" placeholder="Email"><br>
+  <input type="password" id="registerPassword" placeholder="密碼"><br>
+  <button onclick="register()">註冊</button>
 
   <hr>
 
   <h2>登入</h2>
-  <input type="email"    id="logEmail"    placeholder="Email">
-  <input type="password" id="logPass"     placeholder="密碼">
-  <button id="btnLog">登入</button>
+  <input type="email" id="loginEmail" placeholder="Email"><br>
+  <input type="password" id="loginPassword" placeholder="密碼"><br>
+  <button onclick="login()">登入</button>
 
-  <h3>QR Code（登入後）</h3>
+  <h3>QR Code（登入後顯示）：</h3>
   <canvas id="qrcode"></canvas>
 
-  <!-- QRCode 產生器 -->
+  <!-- QR Code Library -->
   <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 
-  <!-- Supabase JS v2 CDN -->
+  <!-- Firebase SDK 模組 -->
   <script type="module">
-    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+    // 載入 Firebase 所需模組
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    // 1️⃣  改成你的 URL 與 anon 公鑰
-    const supabaseUrl = "https://quiklmoprqlkdnmqchof.supabase.co";
-    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1aWtsbW9wcnFsa2RubXFjaG9mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcxMjc1MTAsImV4cCI6MjA2MjcwMzUxMH0.GcblkXuh_bynO3-KYfLpG6ozaauUZYljBGNJdc10M7E";
-    const supabase = createClient(supabaseUrl, supabaseKey);   // :contentReference[oaicite:0]{index=0}
-
-    // 註冊
-    btnReg.onclick = async () => {
-      const { data, error } = await supabase.auth.signUp({
-        email: regEmail.value.trim(),
-        password: regPass.value.trim(),
-      });                               // :contentReference[oaicite:1]{index=1}
-      if (error) return alert("❌ 註冊失敗：" + error.message);
-      alert("✅ 註冊成功！請收驗證信並再登入");
+    // 請在這裡填入你自己的 Firebase 設定
+    const firebaseConfig = {
+      apiKey: "你的 API KEY",
+      authDomain: "你的 authDomain",
+      projectId: "你的 projectId",
+      storageBucket: "你的 storageBucket",
+      messagingSenderId: "你的 senderId",
+      appId: "你的 appId"
     };
 
-    // 登入
-    btnLog.onclick = async () => {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: logEmail.value.trim(),
-        password: logPass.value.trim(),
-      });                               // :contentReference[oaicite:2]{index=2}
-      if (error) return alert("❌ 登入失敗：" + error.message);
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-      // data.session.user.id 就是 UUID
-      const uid = data.session.user.id;
+    // 註冊功能
+    window.register = async function () {
+      const email = document.getElementById("registerEmail").value;
+      const password = document.getElementById("registerPassword").value;
 
-      // 這裡先直接把 uid 當內容產 QR，之後可換成一次性 token
-      QRCode.toCanvas(qrcode, `uid:${uid}`);
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const uid = userCredential.user.uid;
 
-      alert("✅ 登入成功！");
-    };
+        await setDoc(doc(db, "users", uid), {
+          email: email,
+          createdAt: new Date()
+        });
+
+        alert("註冊成功，請使用帳號密碼登入！");
+      } catch (err) {
+        alert("註冊錯誤：" + err.message);
+      }
+    }
+
+    // 登入功能
+    window.login = async function () {
+      const email = document.getElementById("loginEmail").value;
+      const password = document.getElementById("loginPassword").value;
+
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const uid = userCredential.user.uid;
+
+        QRCode.toCanvas(document.getElementById('qrcode'), `UserID: ${uid}`, function (error) {
+          if (error) console.error(error);
+          console.log("QR Code OK");
+        });
+
+        alert("登入成功，已產生 QR Code！");
+      } catch (err) {
+        alert("登入錯誤：" + err.message);
+      }
+    }
   </script>
 </body>
 </html>
