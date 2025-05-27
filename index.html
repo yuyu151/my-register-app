@@ -39,10 +39,10 @@
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
     // 1️⃣ 用你自己的 Supabase URL 與 anon 公鑰
-    const supabaseUrl = "https://quiklmoprqlkdnmqchof.supabase.co";
+    const supabaseUrl ="https://quiklmoprqlkdnmqchof.supabase.co";
     const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1aWtsbW9wcnFsa2RubXFjaG9mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcxMjc1MTAsImV4cCI6MjA2MjcwMzUxMH0.GcblkXuh_bynO3-KYfLpG6ozaauUZYljBGNJdc10M7E";
+    const supabase = createClient(supabaseUrl, supabaseKey);   // :contentReference[oaicite:0]{index=0}
 
-    const supabase = createClient(supabaseUrl, supabaseKey);
 
     // 註冊
     btnReg.onclick = async () => {
