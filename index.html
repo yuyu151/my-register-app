@@ -1,3 +1,36 @@
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>我的第一個網頁</title>
+</head>
+<body>
+  <h1>歡迎加入會員</h1>
+  <p>請填寫以下資訊完成註冊</p>
+  <img src="myimage.jpg" alt="圖片說明" width="300">
+</body>
+</html>
+  <title>註冊＋QR Code</title>
+</head>
+<body>
+  <h2>註冊</h2>
+  <input type="email" id="email" placeholder="Email"><br>
+  <input type="password" id="password" placeholder="密碼"><br>
+  <button onclick="register()">註冊</button>
+
+  <h3>QR Code 結果：</h3>
+  <canvas id="qrcode"></canvas>
+
+  <!-- qrcode.js -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+
+  <!-- Firebase SDKs -->
+  <script type="module">
+    // 初始化 Firebase
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
