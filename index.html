@@ -1,16 +1,21 @@
+
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
   <title>Supabase QR 登入示範</title>
   <style>
-    body{font-family:sans-serif;max-width:420px;margin:2rem auto}
-    input{display:block;width:100%;padding:.5rem;margin:.4rem 0}
-    button{padding:.6rem 1.2rem;margin:.6rem 0;cursor:pointer}
-    canvas{margin-top:1rem}
+    body { font-family: sans-serif; max-width: 420px; margin: 2rem auto; }
+    input { display: block; width: 100%; padding: .5rem; margin: .4rem 0; }
+    button { padding: .6rem 1.2rem; margin: .6rem 0; cursor: pointer; }
+    canvas { margin-top: 1rem; }
   </style>
 </head>
 <body>
+  <h1>歡迎加入會員</h1>
+  <p>請填寫以下資訊完成註冊</p>
+  <img src="myimage.jpg" alt="圖片說明" width="300">
+
   <h2>註冊</h2>
   <input type="email"    id="regEmail"    placeholder="Email">
   <input type="password" id="regPass"     placeholder="密碼 (≥6)">
@@ -33,17 +38,18 @@
   <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
-    // 1️⃣  改成你的 URL 與 anon 公鑰
-    const supabaseUrl = "https://quiklmoprqlkdnmqchof.supabase.co";
+    // 1️⃣ 用你自己的 Supabase URL 與 anon 公鑰
+    const supabaseUrl ="https://quiklmoprqlkdnmqchof.supabase.co";
     const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1aWtsbW9wcnFsa2RubXFjaG9mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcxMjc1MTAsImV4cCI6MjA2MjcwMzUxMH0.GcblkXuh_bynO3-KYfLpG6ozaauUZYljBGNJdc10M7E";
     const supabase = createClient(supabaseUrl, supabaseKey);   // :contentReference[oaicite:0]{index=0}
+
 
     // 註冊
     btnReg.onclick = async () => {
       const { data, error } = await supabase.auth.signUp({
         email: regEmail.value.trim(),
         password: regPass.value.trim(),
-      });                               // :contentReference[oaicite:1]{index=1}
+      });
       if (error) return alert("❌ 註冊失敗：" + error.message);
       alert("✅ 註冊成功！請收驗證信並再登入");
     };
@@ -53,15 +59,11 @@
       const { data, error } = await supabase.auth.signInWithPassword({
         email: logEmail.value.trim(),
         password: logPass.value.trim(),
-      });                               // :contentReference[oaicite:2]{index=2}
+      });
       if (error) return alert("❌ 登入失敗：" + error.message);
 
-      // data.session.user.id 就是 UUID
       const uid = data.session.user.id;
-
-      // 這裡先直接把 uid 當內容產 QR，之後可換成一次性 token
       QRCode.toCanvas(qrcode, `uid:${uid}`);
-
       alert("✅ 登入成功！");
     };
   </script>
