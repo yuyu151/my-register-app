@@ -56,14 +56,39 @@
 
     // 登入
     btnLog.onclick = async () => {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { data, error } = btnReg.onclick = async () => {
+  const { data, error } = await supabase.auth.signUp({
+    email: regEmail.value.trim(),
+    password: regPass.value.trim(),
+  });
+
+  if (error) return alert("❌ 註冊失敗：" + error.message);
+  alert("✅ 註冊成功！請收驗證信並再登入");
+
+  // ✅ 寫入資料庫 users 資料表（記得先在 Supabase 建立這個資料表）
+  const user = data.user;
+  if (user) {
+    const { error: insertError } = await supabase.from("users").insert([
+      {
+        id: user.id,  // Auth 的 UID
+        email: user.email,
+        created_at: new Date().toISOString()
+      }
+    ]);
+    if (insertError) {
+      console.error("寫入 users 資料表失敗：", insertError.message);
+    } else {
+      console.log("✅ 使用者資料已儲存到資料表！");
+    }
+  }
+};
         email: logEmail.value.trim(),
         password: logPass.value.trim(),
       });
       if (error) return alert("❌ 登入失敗：" + error.message);
 
       const uid = data.session.user.id;
-      QRCode.toCanvas(qrcode, `uid:${uid}`);
+      QRCode.toCanvas(qrcode, `uid:${uid}\nemail:${logEmail.value.trim()}`);
       alert("✅ 登入成功！");
     };
   </script>
