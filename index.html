@@ -1,14 +1,46 @@
-
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
   <title>Supabase QR 登入示範</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { font-family: sans-serif; max-width: 420px; margin: 2rem auto; }
-    input { display: block; width: 100%; padding: .5rem; margin: .4rem 0; }
-    button { padding: .6rem 1.2rem; margin: .6rem 0; cursor: pointer; }
-    canvas { margin-top: 1rem; }
+    body {
+      font-family: sans-serif;
+      max-width: 420px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+    input, button {
+      display: block;
+      width: 100%;
+      padding: .5rem;
+      margin: .4rem 0;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #2e86de;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #2164a8;
+    }
+    canvas {
+      margin-top: 1rem;
+      display: none; /* 預設隱藏 QRCode */
+    }
+    @media (max-width: 480px) {
+      body {
+        font-size: 16px;
+      }
+      img {
+        width: 100%;
+        height: auto;
+      }
+    }
   </style>
 </head>
 <body>
@@ -34,19 +66,19 @@
   <!-- QRCode 產生器 -->
   <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 
-  <!-- Supabase JS v2 CDN -->
+  <!-- Supabase JS v2 -->
   <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
     const supabaseUrl = "https://quiklmoprqlkdnmqchof.supabase.co";
-    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1aWtsbW9wcnFsa2RubXFjaG9mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcxMjc1MTAsImV4cCI6MjA2MjcwMzUxMH0.GcblkXuh_bynO3-KYfLpG6ozaauUZYljBGNJdc10M7E";
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...";
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // 綁定按鈕元素
     const btnReg = document.getElementById('btnReg');
     const btnLog = document.getElementById('btnLog');
+    const qrcodeCanvas = document.getElementById('qrcode');
 
-    // 註冊
+    // 註冊功能
     btnReg.onclick = async () => {
       const email = document.getElementById('regEmail').value.trim();
       const password = document.getElementById('regPass').value.trim();
@@ -73,7 +105,7 @@
       }
     };
 
-    // 登入
+    // 登入功能
     btnLog.onclick = async () => {
       const email = document.getElementById('logEmail').value.trim();
       const password = document.getElementById('logPass').value.trim();
@@ -86,10 +118,26 @@
       if (error) return alert("❌ 登入失敗：" + error.message);
 
       const uid = data.session.user.id;
-      QRCode.toCanvas(document.getElementById('qrcode'), `uid:${uid}\nemail:${email}`);
-      alert("✅ 登入成功！");
+
+      // 顯示 QRCode
+      qrcodeCanvas.style.display = "block";
+      QRCode.toCanvas(qrcodeCanvas, `uid:${uid}\nemail:${email}`);
+
+      // 更新 last_login 到 users 資料表
+      const { error: updateError } = await supabase
+        .from("users")
+        .update({ last_login: new Date().toISOString() })
+        .eq("id", uid);
+
+      if (updateError) {
+        console.error("❌ 更新登入時間失敗：", updateError.message);
+      }
+
+      alert("✅ 登入成功！即將前往主頁...");
+      setTimeout(() => {
+        window.location.href = "dashboard.html"; // ← 你可以改成你自己的頁面
+      }, 1500);
     };
   </script>
 </body>
 </html>
-
