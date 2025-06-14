@@ -38,59 +38,58 @@
   <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
-    // 1️⃣ 用你自己的 Supabase URL 與 anon 公鑰
-    const supabaseUrl ="https://quiklmoprqlkdnmqchof.supabase.co";
+    const supabaseUrl = "https://quiklmoprqlkdnmqchof.supabase.co";
     const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1aWtsbW9wcnFsa2RubXFjaG9mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcxMjc1MTAsImV4cCI6MjA2MjcwMzUxMH0.GcblkXuh_bynO3-KYfLpG6ozaauUZYljBGNJdc10M7E";
-    const supabase = createClient(supabaseUrl, supabaseKey);   // :contentReference[oaicite:0]{index=0}
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // 綁定按鈕元素
+    const btnReg = document.getElementById('btnReg');
+    const btnLog = document.getElementById('btnLog');
 
     // 註冊
     btnReg.onclick = async () => {
-      const { data, error } = await supabase.auth.signUp({
-        email: regEmail.value.trim(),
-        password: regPass.value.trim(),
-      });
+      const email = document.getElementById('regEmail').value.trim();
+      const password = document.getElementById('regPass').value.trim();
+
+      const { data, error } = await supabase.auth.signUp({ email, password });
+
       if (error) return alert("❌ 註冊失敗：" + error.message);
       alert("✅ 註冊成功！請收驗證信並再登入");
+
+      const user = data.user;
+      if (user) {
+        const { error: insertError } = await supabase.from("users").insert([
+          {
+            id: user.id,
+            email: user.email,
+            created_at: new Date().toISOString()
+          }
+        ]);
+        if (insertError) {
+          console.error("❌ 寫入 users 資料表失敗：", insertError.message);
+        } else {
+          console.log("✅ 使用者資料已儲存到資料表！");
+        }
+      }
     };
 
     // 登入
     btnLog.onclick = async () => {
-      const { data, error } = btnReg.onclick = async () => {
-  const { data, error } = await supabase.auth.signUp({
-    email: regEmail.value.trim(),
-    password: regPass.value.trim(),
-  });
+      const email = document.getElementById('logEmail').value.trim();
+      const password = document.getElementById('logPass').value.trim();
 
-  if (error) return alert("❌ 註冊失敗：" + error.message);
-  alert("✅ 註冊成功！請收驗證信並再登入");
-
-  // ✅ 寫入資料庫 users 資料表（記得先在 Supabase 建立這個資料表）
-  const user = data.user;
-  if (user) {
-    const { error: insertError } = await supabase.from("users").insert([
-      {
-        id: user.id,  // Auth 的 UID
-        email: user.email,
-        created_at: new Date().toISOString()
-      }
-    ]);
-    if (insertError) {
-      console.error("寫入 users 資料表失敗：", insertError.message);
-    } else {
-      console.log("✅ 使用者資料已儲存到資料表！");
-    }
-  }
-};
-        email: logEmail.value.trim(),
-        password: logPass.value.trim(),
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
+
       if (error) return alert("❌ 登入失敗：" + error.message);
 
       const uid = data.session.user.id;
-      QRCode.toCanvas(qrcode, `uid:${uid}\nemail:${logEmail.value.trim()}`);
+      QRCode.toCanvas(document.getElementById('qrcode'), `uid:${uid}\nemail:${email}`);
       alert("✅ 登入成功！");
     };
   </script>
 </body>
 </html>
+
